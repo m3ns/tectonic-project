@@ -15,8 +15,9 @@ export function groupSignals(signals) {
   return g;
 }
 
-export default function WhyPanel({ event, disabled, onToggle, busy, readOnly }) {
+export default function WhyPanel({ event, disabled, onToggle, busy, readOnly, onClose, categories, title, notice }) {
   const groups = groupSignals(event.signals);
+  (categories || []).forEach((c) => { groups[c] ||= []; });
   if (readOnly) {
     // Advisor portal: original markup/styling (styles.css)
     return (
@@ -39,8 +40,11 @@ export default function WhyPanel({ event, disabled, onToggle, busy, readOnly }) 
   }
   return (
     <div className="why-panel" data-testid="why-panel">
-      <h3>Why am I seeing this?</h3>
+      <div className="sheet-handle" aria-hidden="true" />
+      {onClose && <button type="button" className="sheet-close" data-testid="why-close" aria-label="Close" onClick={onClose}>&times;</button>}
+      <h3>{title || 'Why am I seeing this?'}</h3>
       <p className="sub">We combine several everyday signals. No single payment triggers a message. You decide which signal types we may use.</p>
+      {notice && <div className="sheet-notice" data-testid="pref-notice">{notice}</div>}
       {Object.entries(groups).map(([cat, sigs]) => {
         const off = disabled.includes(cat);
         return (
@@ -48,6 +52,7 @@ export default function WhyPanel({ event, disabled, onToggle, busy, readOnly }) 
             <div className="why-group-head">
               <h4>Signals we noticed · {CAT_LABEL[cat] || cat}</h4>
             </div>
+            {sigs.length === 0 && <div className="cat-empty">No recent signals of this type.</div>}
             <ul className="signals">
               {sigs.map((s) => (
                 <li key={s.transactionId} data-testid="signal-row" className={off ? 'off' : ''}>

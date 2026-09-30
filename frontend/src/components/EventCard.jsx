@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { pct } from '../api.js';
-import WhyPanel from './WhyPanel.jsx';
 
 const S = { width: 30, height: 30, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.6 };
 const ICONS = {
@@ -10,8 +9,7 @@ const ICONS = {
 };
 const DEFAULT_ICON = <svg {...S}><circle cx="12" cy="12" r="10" /><path d="M7 9h10M7 12h7M7 15h10" /></svg>;
 
-export default function EventCard({ event, disabled, onToggle, busy }) {
-  const [open, setOpen] = useState(false);
+export default function EventCard({ event, open, onWhy }) {
   const [called, setCalled] = useState(false);
   const prominent = event.action === 'guidance' || event.action === 'advisor';
   return (
@@ -33,7 +31,7 @@ export default function EventCard({ event, disabled, onToggle, busy }) {
           <div className="confirm" data-testid="advisor-confirmation">Sofie from KBC will call you</div>
         )}
         <div className="row">
-          <button className="why-btn" type="button" data-testid="why-button" onClick={() => setOpen(!open)}>
+          <button className="why-btn" type="button" data-testid="why-button" onClick={() => onWhy(event)}>
             {open ? 'Hide details' : 'Why am I seeing this?'}
           </button>
           {event.action === 'advisor' && !called && (
@@ -41,7 +39,6 @@ export default function EventCard({ event, disabled, onToggle, busy }) {
           )}
           {event.action === 'guidance' && <button className="pill" type="button" data-testid="cta-guidance">See guidance</button>}
         </div>
-        {open && <WhyPanel event={event} disabled={disabled} onToggle={onToggle} busy={busy} />}
       </div>
     </section>
   );

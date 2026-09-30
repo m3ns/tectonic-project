@@ -2,10 +2,32 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { api, getSession, fmtEur } from '../api.js';
 import CustomerHeader, { CustomerFooter } from '../components/CustomerHeader.jsx';
 import EventCard from '../components/EventCard.jsx';
+import WhyPanel, { CAT_LABEL } from '../components/WhyPanel.jsx';
 import '../customer.css';
 
 const CARD = { width: 40, height: 40, viewBox: '0 0 24 24', fill: 'none', stroke: '#fff', strokeWidth: 1.4 };
 const NAV = { width: 22, height: 22, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8 };
+
+const greeting = () => {
+  const h = new Date().getHours();
+  return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+};
+
+function StatusBar() {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => { const t = setInterval(() => setNow(new Date()), 15000); return () => clearInterval(t); }, []);
+  return (
+    <div className="statusbar" aria-hidden="true">
+      <span className="sb-time">{now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</span>
+      <span className="sb-notch" />
+      <span className="sb-icons">
+        <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx=".6" /><rect x="5" y="5.5" width="3" height="6.5" rx=".6" /><rect x="10" y="3" width="3" height="9" rx=".6" /><rect x="15" y="0" width="3" height="12" rx=".6" /></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M1.5 4.2a9.5 9.5 0 0 1 13 0M3.8 6.9a6.2 6.2 0 0 1 8.4 0M6.2 9.4a2.8 2.8 0 0 1 3.6 0" /></svg>
+        <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="3" stroke="currentColor" opacity=".5" /><rect x="2" y="2" width="16" height="8" rx="1.8" fill="currentColor" /><rect x="23" y="4" width="2" height="4" rx="1" fill="currentColor" opacity=".5" /></svg>
+      </span>
+    </div>
+  );
+}
 
 export default function CustomerApp() {
   const [ctx, setCtx] = useState(null);
@@ -13,10 +35,13 @@ export default function CustomerApp() {
   const [busy, setBusy] = useState(false);
   const [access, setAccess] = useState([]);
   const [notice, setNotice] = useState('');
+  const [sheet, setSheet] = useState(null); // { type: 'event', event } | { type: 'all' }
   const user = getSession().user;
 
   const load = useCallback(async () => {
     try { setCtx(await api('/me/context')); setErr(''); } catch (e) { setErr(e.message); }
+  }, []);
+  const loadAccess = useCallback(async () => {
     try { setAccess(await api('/me/access-log')); } catch { /* non-critical */ }
   }, []);
   useEffect(() => {
@@ -24,6 +49,25 @@ export default function CustomerApp() {
     const t = setInterval(load, 2000);
     return () => clearInterval(t);
   }, [load]);
+  useEffect(() => {
+    loadAccess();
+    const t = setInterval(loadAccess, 10000);
+    return () => clearInterval(t);
+  }, [loadAccess]);
+
+  // keep the sheet's event snapshot fresh while it still has signals; it survives the card unmounting
+  useEffect(() => {
+    if (sheet?.type !== 'event' || !ctx) return;
+    const e = (ctx.events || []).find((x) => x.type === sheet.event.type);
+    if (e && (e.signals || []).length > 0) setSheet({ type: 'event', event: e });
+  }, [ctx]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const openWhy = (event) => {
+    if (sheet?.type === 'event' && sheet.event.type === event.type) { setSheet(null); return; }
+    setNotice(''); setSheet({ type: 'event', event });
+  };
+  const openAll = () => { setNotice(''); setSheet({ type: 'all' }); };
+  const closeSheet = () => setSheet(null);
 
   const toggle = async (cat, enabled) => {
     const cur = ctx.disabledCategories || [];
@@ -31,21 +75,24 @@ export default function CustomerApp() {
     setBusy(true);
     try {
       setCtx(await api('/me/preferences', { method: 'PUT', body: { disabledCategories: next } }));
-      setNotice(enabled ? '' : "Got it — we won't use these signals");
+      setNotice(enabled ? '' : "Got it — we won't use these signals. This suggestion is hidden.");
     } catch (e) { setErr(e.message); } finally { setBusy(false); }
   };
 
   const shown = (ctx?.events || []).filter((e) => ['personalise', 'guidance', 'advisor'].includes(e.action));
+  const disabledCats = ctx?.disabledCategories || [];
+  const sheetOpen = !!sheet;
   const name = ctx?.customer?.first_name || user.displayName;
   const fullName = (user.displayName || name || '').toUpperCase();
 
   return (
     <div className="cust-app">
       <div className="phone" data-testid="customer-app">
+        <StatusBar />
         <div className="scroll">
-          <CustomerHeader />
+          <CustomerHeader onSettings={openAll} />
 
-          <h2 className="greet" data-testid="greeting">Hi {name}</h2>
+          <h2 className="greet" data-testid="greeting">{greeting()}, {name}</h2>
 
           <div className="accounts">
             <div className="acc active">
@@ -76,19 +123,27 @@ export default function CustomerApp() {
           </div>
 
           {err && <div className="error" data-testid="error">{err}</div>}
+          {ctx && disabledCats.length > 0 && (
+            <div className="hint-row" data-testid="disabled-hint">
+              <span>{disabledCats.length} signal {disabledCats.length === 1 ? 'category' : 'categories'} switched off</span>
+              <button type="button" onClick={openAll}>Manage</button>
+            </div>
+          )}
           {ctx && ctx.consent === false && (
             <div className="msg off" data-testid="personalisation-off">Personalisation is off</div>
           )}
           {ctx && ctx.consent !== false && (
             <div className="cards" data-testid="life-context">
               {shown.map((e) => (
-                <EventCard key={e.type} event={e} disabled={ctx.disabledCategories || []} onToggle={toggle} busy={busy} />
+                <EventCard key={e.type} event={e} open={sheet?.type === 'event' && sheet.event.type === e.type} onWhy={openWhy} />
               ))}
-              {notice && <div className="notice" data-testid="pref-notice">{notice}</div>}
+              {notice && !sheetOpen && <div className="notice" data-testid="pref-notice">{notice}</div>}
             </div>
           )}
 
           <p className="privacy" data-testid="privacy-note">We never use health, pregnancy or dating-related spending.</p>
+
+          <button type="button" className="privacy-btn" data-testid="signal-settings" onClick={openAll}>Privacy &amp; signals</button>
 
           <div className="access" data-testid="access-log">
             <h3>Who looked at my context</h3>
@@ -111,6 +166,20 @@ export default function CustomerApp() {
         <button className="fab" type="button" aria-label="Transfer">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><path d="M4 8h14l-4-4M20 16H6l4 4" /></svg>
         </button>
+
+        {sheet && ctx && (
+          <>
+            <div className="sheet-backdrop" onClick={closeSheet} />
+            {sheet.type === 'event' ? (
+              <WhyPanel event={sheet.event} disabled={disabledCats} onToggle={toggle} busy={busy} onClose={closeSheet}
+                categories={[...new Set((sheet.event.signals || []).map((s) => s.signalCategory))]} notice={notice} />
+            ) : (
+              <WhyPanel event={{ signals: (ctx.events || []).flatMap((e) => e.signals || []) }} disabled={disabledCats}
+                onToggle={toggle} busy={busy} onClose={closeSheet} categories={Object.keys(CAT_LABEL)}
+                title="Privacy & signals" notice={notice} />
+            )}
+          </>
+        )}
 
         <nav className="nav" aria-hidden="true">
           <div className="on"><svg {...NAV} fill="currentColor"><rect x="3" y="6" width="18" height="14" rx="2" /></svg>Start</div>

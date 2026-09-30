@@ -8,7 +8,7 @@
 .cust-app *, .cust-app *::before, .cust-app *::after { box-sizing: border-box; }
 .cust-app .phone {
   position: relative; width: 390px; max-width: 100%; height: min(844px, calc(100vh - 48px)); min-height: 600px;
-  background: var(--bg); border-radius: 36px; box-shadow: 0 0 0 10px #1b1b1d, 0 20px 50px rgba(0,0,0,.35);
+  background: var(--bg); border-radius: 36px; box-shadow: 0 0 0 10px #1b1b1d, 0 0 0 12px #3a3a3e, 0 24px 60px rgba(0,0,0,.4);
   overflow: hidden; display: flex; flex-direction: column;
 }
 .cust-app .scroll { flex: 1; overflow-y: auto; padding-bottom: 100px; }
@@ -77,7 +77,12 @@
 .cust-app .error { margin: 0 14px 12px; padding: 10px 12px; border-radius: 8px; background: #fde8e5; color: #b3261e; font-size: 13.5px; }
 
 /* Why panel (inline sheet) */
-.cust-app .why-panel { margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(0,54,101,.15); }
+.cust-app .why-panel {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 41; margin: 0; background: var(--card);
+  max-height: 72%; overflow-y: auto; overscroll-behavior: contain;
+  border-radius: 20px 20px 0 0; box-shadow: 0 -10px 40px rgba(0,0,0,.25);
+  padding: 12px 18px 18px; animation: sheet-up .28s ease-out;
+}
 .cust-app .why-panel h3 { margin: 0 0 4px; font-size: 16px; font-weight: 600; }
 .cust-app .why-panel .sub { margin: 0 0 6px; font-size: 13px; color: var(--muted); line-height: 1.4; }
 .cust-app .why-panel h4 { margin: 14px 0 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; }
@@ -114,3 +119,55 @@
 .cust-app .nav { position: absolute; left: 0; right: 0; bottom: 0; height: 76px; display: flex; justify-content: space-around; align-items: center; background: var(--card); border-top: 1px solid var(--line); padding-bottom: 8px; }
 .cust-app .nav div { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11.5px; color: var(--muted); }
 .cust-app .nav div.on { color: var(--navy); font-weight: 600; }
+
+/* Device chrome (desktop frame only) */
+.cust-app .statusbar { position: absolute; top: 0; left: 0; right: 0; height: 40px; z-index: 6; display: flex; justify-content: space-between; align-items: center; padding: 6px 26px 0; font-size: 14px; font-weight: 600; color: var(--ink); pointer-events: none; background: linear-gradient(var(--bg) 70%, rgba(243,246,249,0)); }
+.cust-app .sb-notch { position: absolute; left: 50%; top: 8px; width: 96px; height: 24px; margin-left: -48px; border-radius: 14px; background: #111; }
+.cust-app .sb-icons { display: flex; align-items: center; gap: 6px; }
+.cust-app .sheet-backdrop { display: none; }
+.cust-app .sheet-handle { display: block; width: 40px; height: 4px; border-radius: 2px; background: #cbd3db; margin: 0 auto 10px; }
+.cust-app .sheet-close { display: grid; place-items: center; position: absolute; top: 8px; right: 8px; width: 40px; height: 40px; border: 0; border-radius: 50%; background: #eef1f4; color: var(--navy); font-size: 26px; line-height: 1; cursor: pointer; }
+.cust-app .sheet-notice { margin: 8px 0 0; padding: 10px 12px; border-radius: 8px; background: #eaf6fd; border-left: 4px solid var(--navy); font-size: 13.5px; }
+.cust-app .cat-empty { color: var(--muted); font-size: 12.5px; padding: 6px 0; }
+.cust-app .hint-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 14px 12px; padding: 8px 12px; border-radius: 8px; background: #fff6df; color: #7a5200; font-size: 13px; }
+.cust-app .hint-row button, .cust-app .privacy-btn { border: 0; background: none; color: var(--blue); font-weight: 600; font-size: 13.5px; cursor: pointer; padding: 6px 2px; }
+.cust-app .privacy-btn { display: block; margin: 0 14px 12px; }
+
+/* Real phones: full-bleed, no frame */
+@media (max-width: 520px) {
+  html, body { overflow-x: hidden; }
+  .cust-app { padding: 0; background: var(--bg); min-height: 100dvh; display: block; font-size: 16px; }
+  .cust-app .phone {
+    width: 100%; max-width: 100%; height: 100dvh; min-height: 0; border-radius: 0; box-shadow: none;
+    padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right);
+  }
+  .cust-app .statusbar { display: none; }
+  .cust-app .top { padding: calc(12px + env(safe-area-inset-top)) 14px 12px; }
+  .cust-app .scroll { padding-bottom: 24px; overflow-x: hidden; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  .cust-app .nav {
+    position: sticky; bottom: 0; flex: none; height: auto; z-index: 20;
+    padding: 6px 0 calc(6px + env(safe-area-inset-bottom));
+  }
+  .cust-app .nav div { min-height: 48px; min-width: 44px; justify-content: center; }
+  .cust-app .fab { position: fixed; right: calc(16px + env(safe-area-inset-right)); bottom: calc(84px + env(safe-area-inset-bottom)); z-index: 21; }
+  .cust-app .icon-btn { width: 44px; height: 44px; }
+  .cust-app .logout { min-height: 44px; min-width: 44px; font-size: 14px; }
+  .cust-app .search { height: 44px; }
+  .cust-app .why-btn { min-height: 44px; font-size: 15px; }
+  .cust-app .pill { min-height: 44px; padding: 0 18px; font-size: 14px; border-radius: 22px; }
+  .cust-app .toggle { min-height: 48px; }
+  .cust-app .switch { width: 52px; height: 30px; }
+  .cust-app .switch > span { border-radius: 15px; }
+  .cust-app .switch > span::after { width: 24px; height: 24px; }
+  .cust-app .switch input:checked + span::after { transform: translateX(22px); }
+  .cust-app .msg .txt { font-size: 16px; }
+  .cust-app .foot, .cust-app .privacy, .cust-app .access small { font-size: 13px; }
+
+  /* "Why am I seeing this?" as a bottom sheet */
+  .cust-app .sheet-backdrop { display: block; position: fixed; inset: 0; z-index: 40; background: rgba(0,20,40,.35); }
+  .cust-app .why-panel {
+    position: fixed; max-height: 82dvh; padding: 12px 18px calc(18px + env(safe-area-inset-bottom));
+  }
+  .cust-app .sheet-close { width: 44px; height: 44px; }
+}
+@keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
