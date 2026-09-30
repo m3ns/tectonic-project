@@ -15,7 +15,7 @@
 | Refuse weak/placeholder secrets and demo mode in production | `backend/src/config.js` |
 | JWT HS256 pinned, `iss`/`aud`/`jti`/`sub`, 15m TTL, strict Bearer format, user re-resolved per request | `backend/src/auth.js` |
 | Logout and revocation denylist | `backend/src/auth.js` |
-| Per-username lockout (5 fails, 15 min), IP login limiter, global rate limit | `backend/src/auth.js`, `backend/src/server.js` |
+| Lockout keyed on IP + username (10 fails, `LOCKOUT_MS` default 60 s), IP login limiter, global rate limit (`API_RATE_LIMIT`, default 1000/min/IP) | `backend/src/auth.js`, `backend/src/server.js` |
 | Content-Type enforcement, prototype-pollution key rejection, strict per-route body schemas, query hygiene, method allowlist | `backend/src/validate.js`, route files |
 | Helmet (CSP `default-src none`, HSTS, CORP, no-referrer), no-store caching, Permissions-Policy, strict CORS | `backend/src/server.js` |
 | Request/header timeouts, bounded body (10kb), generic errors with request id | `backend/src/server.js` |
@@ -32,6 +32,6 @@ Health, pregnancy and dating-related spending are never used as signals (see `ba
 
 - Users, password, lockouts, revocation list, access log and call log are in memory and reset on restart; multiple instances would not share them.
 - Demo users share one password (`DEMO_PASSWORD`); a real deployment needs an identity provider (OIDC) and a persistent, append-only audit store.
-- Per-username lockout can be abused to lock out a known user for 15 minutes (accepted trade-off against brute force).
+- Lockout is keyed on IP + username, so a stranger cannot lock a demo user out for everyone else; an attacker rotating IPs is only slowed by the login limiter. `TRUST_PROXY` defaults to `loopback` so `req.ip` is the real client behind the dev proxy.
 - Tokens live in `sessionStorage` (XSS would expose them; mitigated by CSP and no third-party scripts).
 - TLS termination and HSTS effectiveness depend on the deployment proxy (`TRUST_PROXY`).

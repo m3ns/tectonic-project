@@ -31,10 +31,17 @@ if (!/^\d+(s|m|h|d)$/.test(JWT_TTL)) fatal("JWT_TTL must look like 900s, 15m, 1h
 const silent = parseInt(process.env.SILENT_CUSTOMERS ?? "45", 10);
 
 let trust = process.env.TRUST_PROXY;
-if (trust === undefined || trust === "" || trust === "false") trust = false;
+if (trust === undefined || trust === "") trust = "loopback";
+else if (trust === "false") trust = false;
 else if (trust === "true") trust = true;
 else if (/^\d+$/.test(trust)) trust = parseInt(trust, 10);
-else fatal("TRUST_PROXY must be false, true or a hop count.");
+else if (trust === "loopback") trust = "loopback";
+else fatal("TRUST_PROXY must be loopback, false, true or a hop count.");
+
+const intEnv = (name, def, min, max) => {
+  const n = parseInt(process.env[name] ?? "", 10);
+  return Number.isFinite(n) && n >= min && n <= max ? n : def;
+};
 
 module.exports = {
   PORT: parseInt(process.env.PORT || "3000", 10),
@@ -46,5 +53,7 @@ module.exports = {
   FRONTEND_ORIGIN: process.env.FRONTEND_ORIGIN || "http://localhost:5173",
   DEMO_MODE,
   TRUST_PROXY: trust,
+  API_RATE_LIMIT: intEnv("API_RATE_LIMIT", 1000, 10, 100000),
+  LOCKOUT_MS: intEnv("LOCKOUT_MS", 60000, 1000, 86400000),
   SILENT_CUSTOMERS: Number.isFinite(silent) && silent >= 0 ? Math.min(silent, 500) : 45,
 };

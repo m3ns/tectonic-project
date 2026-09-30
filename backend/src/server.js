@@ -10,7 +10,10 @@ const me = require("./routes/me");
 const advisor = require("./routes/advisor");
 
 process.on("unhandledRejection", (r) => console.error("unhandledRejection:", r && r.message));
-process.on("uncaughtException", (e) => console.error("uncaughtException:", e && e.message));
+process.on("uncaughtException", (e) => {
+  console.error("uncaughtException:", e && e.message, e && e.stack);
+  process.exit(1);
+});
 
 const app = express();
 app.disable("x-powered-by");
@@ -22,6 +25,7 @@ app.use(helmet({
   strictTransportSecurity: { maxAge: 31536000, includeSubDomains: true },
   referrerPolicy: { policy: "no-referrer" },
   xContentTypeOptions: true,
+  xFrameOptions: { action: "deny" },
 }));
 app.use((req, res, next) => {
   res.set("Cache-Control", "no-store");
@@ -36,7 +40,7 @@ app.use(cors({
 
 const api = express.Router();
 api.use(v.methodGuard);
-api.use(rateLimit({ windowMs: 60_000, limit: 300, standardHeaders: "draft-7", legacyHeaders: false, message: { error: "Too many requests" } }));
+api.use(rateLimit({ windowMs: 60_000, limit: config.API_RATE_LIMIT, standardHeaders: "draft-7", legacyHeaders: false, message: { error: "Too many requests" } }));
 api.use(v.contentTypeGuard);
 api.use(express.json({ limit: "10kb", strict: true }));
 api.use(v.sanitize);

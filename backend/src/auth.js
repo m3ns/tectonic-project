@@ -23,16 +23,17 @@ const loginLimiter = rateLimit({
   message: { error: "Too many login attempts" },
 });
 
-// --- per-username lockout (known and unknown names are treated identically) ---
-const MAX_FAILS = 5;
-const LOCK_MS = 15 * 60_000;
+// --- lockout keyed on ip|username (known and unknown names are treated identically;
+// a stranger cannot lock a demo user out for everyone else) ---
+const MAX_FAILS = 10;
+const LOCK_MS = config.LOCKOUT_MS;
 const MAX_TRACKED = 10_000;
-const attempts = new Map(); // username -> { fails, lockedUntil }
+const attempts = new Map(); // "ip|username" -> { fails, lockedUntil }
 const isLocked = (k) => {
   const a = attempts.get(k);
   return !!a && a.lockedUntil > Date.now();
 };
-function recordFailure(k, req) {
+function recordFailure(k, req, username) {
   const now = Date.now();
   let a = attempts.get(k);
   if (!a || (a.lockedUntil && a.lockedUntil <= now)) a = { fails: 0, lockedUntil: 0 };
@@ -40,7 +41,7 @@ function recordFailure(k, req) {
   if (a.fails >= MAX_FAILS) {
     a.lockedUntil = now + LOCK_MS;
     a.fails = 0;
-    audit.log("lockout", req, { user: audit.hashUser(k) });
+    audit.log("lockout", req, { user: audit.hashUser(username) });
   }
   attempts.delete(k); // refresh insertion order
   attempts.set(k, a);
@@ -61,25 +62,26 @@ router.post("/login", loginLimiter, v.body({
   password: { required: true, check: (x) => typeof x === "string" && x.length > 0 && x.length <= 128 },
 }, "username and password required"), (req, res) => {
   const { username, password } = req.body;
-  const key = username.toLowerCase();
-  const u = lookup(key);
+  const name = username.toLowerCase();
+  const key = `${req.ip}|${name}`;
+  const u = lookup(name);
   const pwOk = passwordOk(password); // always evaluated
   if (isLocked(key)) {
-    audit.log("login_failure", req, { user: audit.hashUser(key), reason: "locked" });
+    audit.log("login_failure", req, { user: audit.hashUser(name), reason: "locked" });
     return res.status(429).json({ error: "Too many login attempts" });
   }
   if (!u || !pwOk) {
-    recordFailure(key, req);
-    audit.log("login_failure", req, { user: audit.hashUser(key) });
+    recordFailure(key, req, name);
+    audit.log("login_failure", req, { user: audit.hashUser(name) });
     return res.status(401).set("WWW-Authenticate", "Bearer").json({ error: "Invalid credentials" });
   }
   attempts.delete(key);
-  const user = { username: key, role: u.role, displayName: u.displayName, ...(u.customerId ? { customerId: u.customerId } : {}) };
+  const user = { username: name, role: u.role, displayName: u.displayName, ...(u.customerId ? { customerId: u.customerId } : {}) };
   const token = jwt.sign({ role: u.role }, config.JWT_SECRET, {
     algorithm: "HS256", expiresIn: config.JWT_TTL, issuer: config.JWT_ISSUER, audience: config.JWT_AUDIENCE,
-    subject: key, jwtid: crypto.randomUUID(),
+    subject: name, jwtid: crypto.randomUUID(),
   });
-  audit.log("login_success", req, { user: audit.hashUser(key), role: u.role });
+  audit.log("login_success", req, { user: audit.hashUser(name), role: u.role });
   res.json({ token, user });
 });
 
@@ -120,7 +122,8 @@ function requireAuth(req, res, next) {
 }
 
 router.post("/logout", requireAuth, v.body({}), (req, res) => {
-  if (revoked.size < 100_000) revoked.set(req.token.jti, req.token.exp);
+  if (revoked.size >= 100_000) revoked.delete(revoked.keys().next().value); // evict oldest, never skip a revocation
+  revoked.set(req.token.jti, req.token.exp);
   res.json({ ok: true });
 });
 

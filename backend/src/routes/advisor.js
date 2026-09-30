@@ -52,7 +52,7 @@ router.get("/customers/:id/context", validId, (req, res) => {
   res.json(res.locals.ctx);
 });
 
-router.post("/customers/:id/call", v.body({ note: { check: (x) => x === undefined || typeof x === "string" } }), validId, (req, res) => {
+router.post("/customers/:id/call", validId, v.body({ note: { check: (x) => x === undefined || typeof x === "string" } }), (req, res) => {
   // Purpose binding: only customers with an advisor/guidance-level event may be contacted.
   if (!res.locals.ctx.events.some((e) => e.action === "advisor" || e.action === "guidance")) {
     audit.log("forbidden", req, { user: audit.hashUser(req.user.username), reason: "no_purpose" });
