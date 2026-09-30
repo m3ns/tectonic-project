@@ -39,3 +39,7 @@ The analysis pipeline (`backend/src/engine/pipeline.js`) skips customers without
 - Lockout is keyed on IP + username, so a stranger cannot lock a demo user out for everyone else; an attacker rotating IPs is only slowed by the login limiter. `TRUST_PROXY` defaults to `loopback` so `req.ip` is the real client behind the dev proxy.
 - Tokens live in `sessionStorage` (XSS would expose them; mitigated by CSP and no third-party scripts).
 - TLS termination and HSTS effectiveness depend on the deployment proxy (`TRUST_PROXY`).
+
+## Dependency findings
+
+- **raw-body 3.0.2, AIKIDO-2026-274460 (low): not affected.** The CVE only triggers when an invalid `limit` (for example `NaN` or an unparseable string) reaches raw-body, which then reads without a cap. Our only body parser is `express.json({ limit: "10kb" })` in `backend/src/server.js`, a fixed valid constant. body-parser 2.3.0 also validates the limit before calling raw-body and throws `TypeError` on an invalid value (`node_modules/body-parser/lib/utils.js`). The suggested upgrade to raw-body 4.0.0 is not possible yet: 4.0.0 changed its export to an object, while body-parser (latest, 2.3.0) still calls it as a function, so forcing it with an npm override makes every JSON request fail. We will take the fix when Express/body-parser move to raw-body 4.
