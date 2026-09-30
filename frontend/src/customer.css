@@ -59,7 +59,7 @@
 .cust-app .msg .txt strong { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 16px; font-weight: 500; margin-bottom: 4px; }
 .cust-app .ev-msg { display: block; }
 .cust-app .msg .row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; gap: 8px; flex-wrap: wrap; }
-.cust-app .why-btn { background: none; border: 0; padding: 0; color: var(--ink); font-size: 14px; cursor: pointer; text-align: left; }
+.cust-app .why-btn { background: none; border: 0; padding: 0; color: var(--muted); font-size: 12px; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; text-align: left; }
 .cust-app .why-btn:hover { text-decoration: underline; }
 .cust-app .pill { border: 0; border-radius: 14px; padding: 7px 14px; background: var(--blue); color: #fff; font-size: 12px; cursor: pointer; white-space: nowrap; margin-left: auto; }
 .cust-app .badge { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; padding: 2px 8px; border-radius: 10px; background: #e6ebf0; color: var(--muted); }
@@ -153,7 +153,7 @@
   .cust-app .icon-btn { width: 44px; height: 44px; }
   .cust-app .logout { min-height: 44px; min-width: 44px; font-size: 14px; }
   .cust-app .search { height: 44px; }
-  .cust-app .why-btn { min-height: 44px; font-size: 15px; }
+  .cust-app .why-btn { min-height: 32px; font-size: 13px; }
   .cust-app .pill { min-height: 44px; padding: 0 18px; font-size: 14px; border-radius: 22px; }
   .cust-app .toggle { min-height: 48px; }
   .cust-app .switch { width: 52px; height: 30px; }
