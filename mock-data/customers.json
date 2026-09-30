@@ -1,0 +1,92 @@
+[
+  {
+    "id": "C1001",
+    "first_name": "Alex",
+    "home_city": "Antwerp",
+    "preferred_language": "nl",
+    "customer_since": "2018-04-12",
+    "products": ["current_account", "savings_account"],
+    "personalization_consent": true
+  },
+  {
+    "id": "C1002",
+    "first_name": "Noor",
+    "home_city": "Leuven",
+    "preferred_language": "nl",
+    "customer_since": "2020-09-03",
+    "products": ["current_account", "savings_account"],
+    "personalization_consent": true
+  },
+  {
+    "id": "C1003",
+    "first_name": "Thomas",
+    "home_city": "Brussels",
+    "preferred_language": "fr",
+    "customer_since": "2016-02-18",
+    "products": ["current_account", "credit_card", "travel_insurance"],
+    "personalization_consent": true
+  },
+  {
+    "id": "C1004",
+    "first_name": "Emma",
+    "home_city": "Ghent",
+    "preferred_language": "nl",
+    "customer_since": "2022-01-24",
+    "products": ["current_account"],
+    "personalization_consent": true
+  },
+  {
+    "id": "C1005",
+    "first_name": "Lucas",
+    "home_city": "Hasselt",
+    "preferred_language": "nl",
+    "customer_since": "2019-07-15",
+    "products": ["current_account", "car_insurance"],
+    "personalization_consent": true
+  },
+  {
+    "id": "C1006",
+    "first_name": "Sarah",
+    "home_city": "Mechelen",
+    "preferred_language": "nl",
+    "customer_since": "2017-11-06",
+    "products": ["current_account", "savings_account", "home_insurance"],
+    "personalization_consent": true
+  },
+  {
+    "id": "C1007",
+    "first_name": "Youssef",
+    "home_city": "Brussels",
+    "preferred_language": "fr",
+    "customer_since": "2021-05-30",
+    "products": ["current_account"],
+    "personalization_consent": true
+  },
+  {
+    "id": "C1008",
+    "first_name": "Julie",
+    "home_city": "Namur",
+    "preferred_language": "fr",
+    "customer_since": "2015-08-21",
+    "products": ["current_account", "savings_account", "credit_card"],
+    "personalization_consent": false
+  },
+  {
+    "id": "C1009",
+    "first_name": "Milan",
+    "home_city": "Bruges",
+    "preferred_language": "nl",
+    "customer_since": "2023-03-09",
+    "products": ["current_account"],
+    "personalization_consent": true
+  },
+  {
+    "id": "C1010",
+    "first_name": "Louise",
+    "home_city": "Liege",
+    "preferred_language": "fr",
+    "customer_since": "2014-12-02",
+    "products": ["current_account", "savings_account", "home_insurance"],
+    "personalization_consent": true
+  }
+]
