@@ -100,7 +100,7 @@ export default function CustomerApp() {
   const sheetOpen = !!sheet;
   const liveEv = sheet?.type === 'event' ? (ctx?.events || []).find((x) => x.type === sheet.event.type) : null;
   const gone = sheet?.type === 'event' && (!liveEv || liveEv.action === 'none');
-  const noticeText = notice ? `Got it — we won't use these signals.${sheet?.type === 'event' && gone ? ' This suggestion is hidden.' : ''}` : '';
+  const noticeText = notice ? `Got it, we won't use these signals.${sheet?.type === 'event' && gone ? ' This suggestion is hidden.' : ''}` : '';
   const name = ctx?.customer?.first_name || user.displayName;
   const fullName = (user.displayName || name || '').toUpperCase();
 
@@ -156,7 +156,7 @@ export default function CustomerApp() {
               {shown.map((e) => (
                 <EventCard key={e.type} event={e} open={sheet?.type === 'event' && sheet.event.type === e.type} onWhy={openWhy} />
               ))}
-              {notice && !sheetOpen && <div className="notice" data-testid="pref-notice">Got it — we won't use these signals.</div>}
+              {notice && !sheetOpen && <div className="notice" data-testid="pref-notice">Got it, we won't use these signals.</div>}
             </div>
           )}
 
@@ -170,7 +170,7 @@ export default function CustomerApp() {
             <ul>
               {access.slice(0, 5).map((a, i) => (
                 <li key={i}>
-                  <small>{a.advisor} — {a.action === 'call' ? 'called you' : 'viewed your context'} · {new Date(a.at).toLocaleString()}</small>
+                  <small>{a.advisor} · {a.action === 'call' ? 'called you' : 'viewed your context'} · {new Date(a.at).toLocaleString()}</small>
                 </li>
               ))}
             </ul>

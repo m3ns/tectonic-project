@@ -23,7 +23,7 @@ export default function Header({ title }) {
 export function Footer() {
   return (
     <footer className="foot" data-testid="channel-footer">
-      Served by the KBC Life Context API — same context for app, web, call center and advisor portal.
+      Served by the KBC Life Context API: same context for app, web, call center and advisor portal.
     </footer>
   );
 }

@@ -48,7 +48,7 @@ function Signals({ event }) {
                 <CheckIcon />
                 <div className="sig-text">
                   <span><b>{s.merchant}</b>{s.city ? ` · ${s.city}` : ''}<span className="amt">{fmtEur(s.amount)}</span></span>
-                  <small>{s.date} — {s.reason}</small>
+                  <small>{s.date} · {s.reason}</small>
                 </div>
               {(s.points ?? s.weight) != null && <span className="pts" data-testid="signal-points">+{s.points ?? s.weight}</span>}
               </li>
@@ -285,7 +285,7 @@ export default function AdvisorPortal() {
                     <Conf value={e.confidence} level={e.level} testid="detail-confidence" />
                     <p className="ev-msg">{e.message}</p>
                     <details open={e === top}>
-                      <summary>Detected signals — {e.signals.length} signals</summary>
+                      <summary>Detected signals: {e.signals.length} signals</summary>
                       <Signals event={e} />
                     </details>
                   </div>
@@ -387,7 +387,7 @@ export default function AdvisorPortal() {
               {calls.length === 0 && <small className="muted">No calls yet</small>}
               <ul>
                 {[...calls].reverse().slice(0, 6).map((c) => (
-                  <li key={c.id} data-testid="call-row">{hhmm(c.at)} — {nameOf(c.customerId)}{c.note ? ` · ${c.note}` : ''}</li>
+                  <li key={c.id} data-testid="call-row">{hhmm(c.at)} · {nameOf(c.customerId)}{c.note ? ` · ${c.note}` : ''}</li>
                 ))}
               </ul>
             </div>
@@ -413,7 +413,7 @@ export default function AdvisorPortal() {
       </div>
 
       <footer className="foot" data-testid="channel-footer">
-        Served by the KBC Life Context API — same context for app, web, call center and advisor portal.
+        Served by the KBC Life Context API: same context for app, web, call center and advisor portal.
       </footer>
     </div>
   );

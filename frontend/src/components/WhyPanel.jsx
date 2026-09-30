@@ -29,7 +29,7 @@ export default function WhyPanel({ event, disabled, onToggle, busy, readOnly, on
               {sigs.map((s) => (
                 <li key={s.transactionId} data-testid="signal-row">
                   <div><b>{s.merchant}</b>{s.city ? ` · ${s.city}` : ''}<span className="amt">{fmtEur(s.amount)}</span></div>
-                  <small>{s.date} — {s.reason}</small>
+                  <small>{s.date} · {s.reason}</small>
                 </li>
               ))}
             </ul>
@@ -59,7 +59,7 @@ export default function WhyPanel({ event, disabled, onToggle, busy, readOnly, on
                   <span className="check">{off ? '–' : '✓'}</span>
                   <div className="sig-body">
                     <div><b>{s.merchant}</b>{s.city ? ` · ${s.city}` : ''}<span className="amt">{fmtEur(s.amount)}</span></div>
-                    <small>{s.date} — {s.reason}</small>
+                    <small>{s.date} · {s.reason}</small>
                   </div>
                 </li>
               ))}
