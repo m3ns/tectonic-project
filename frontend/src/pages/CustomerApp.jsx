@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { api, getSession, fmtEur } from '../api.js';
 import CustomerHeader, { CustomerFooter } from '../components/CustomerHeader.jsx';
 import EventCard from '../components/EventCard.jsx';
@@ -37,9 +37,14 @@ export default function CustomerApp() {
   const [notice, setNotice] = useState('');
   const [sheet, setSheet] = useState(null); // { type: 'event', event } | { type: 'all' }
   const user = getSession().user;
+  const ver = useRef(0); // bumped when a preference PUT starts/finishes; older in-flight loads are ignored
 
   const load = useCallback(async () => {
-    try { setCtx(await api('/me/context')); setErr(''); } catch (e) { setErr(e.message); }
+    const v = ver.current;
+    try {
+      const c = await api('/me/context');
+      if (v === ver.current) { setCtx(c); setErr(''); }
+    } catch (e) { if (v === ver.current) setErr(e.message); }
   }, []);
   const loadAccess = useCallback(async () => {
     try { setAccess(await api('/me/access-log')); } catch { /* non-critical */ }
@@ -59,12 +64,20 @@ export default function CustomerApp() {
   useEffect(() => {
     if (sheet?.type !== 'event' || !ctx) return;
     const e = (ctx.events || []).find((x) => x.type === sheet.event.type);
-    if (e && (e.signals || []).length > 0) setSheet({ type: 'event', event: e });
+    if (!e) return;
+    // merge so signals/categories of switched-off groups stay visible in the open sheet
+    const old = sheet.event.signals || [];
+    const have = new Set(old.map((x) => x.transactionId));
+    const signals = [...old, ...(e.signals || []).filter((x) => !have.has(x.transactionId))];
+    const cats = [...new Set([...sheet.cats, ...signals.map((x) => x.signalCategory)])];
+    if (signals.length !== old.length || cats.length !== sheet.cats.length || e.action !== sheet.event.action) {
+      setSheet({ type: 'event', event: { ...e, signals }, cats });
+    }
   }, [ctx]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const openWhy = (event) => {
     if (sheet?.type === 'event' && sheet.event.type === event.type) { setSheet(null); return; }
-    setNotice(''); setSheet({ type: 'event', event });
+    setNotice(''); setSheet({ type: 'event', event, cats: [...new Set((event.signals || []).map((x) => x.signalCategory))] });
   };
   const openAll = () => { setNotice(''); setSheet({ type: 'all' }); };
   const closeSheet = () => setSheet(null);
@@ -73,15 +86,21 @@ export default function CustomerApp() {
     const cur = ctx.disabledCategories || [];
     const next = enabled ? cur.filter((c) => c !== cat) : [...cur, cat];
     setBusy(true);
+    ver.current += 1;
     try {
-      setCtx(await api('/me/preferences', { method: 'PUT', body: { disabledCategories: next } }));
-      setNotice(enabled ? '' : "Got it — we won't use these signals. This suggestion is hidden.");
-    } catch (e) { setErr(e.message); } finally { setBusy(false); }
+      const c = await api('/me/preferences', { method: 'PUT', body: { disabledCategories: next } });
+      ver.current += 1;
+      setCtx(c);
+      setNotice(enabled ? '' : 'off');
+    } catch (e) { ver.current += 1; setErr(e.message); } finally { setBusy(false); }
   };
 
   const shown = (ctx?.events || []).filter((e) => ['personalise', 'guidance', 'advisor'].includes(e.action));
   const disabledCats = ctx?.disabledCategories || [];
   const sheetOpen = !!sheet;
+  const liveEv = sheet?.type === 'event' ? (ctx?.events || []).find((x) => x.type === sheet.event.type) : null;
+  const gone = sheet?.type === 'event' && (!liveEv || liveEv.action === 'none');
+  const noticeText = notice ? `Got it — we won't use these signals.${sheet?.type === 'event' && gone ? ' This suggestion is hidden.' : ''}` : '';
   const name = ctx?.customer?.first_name || user.displayName;
   const fullName = (user.displayName || name || '').toUpperCase();
 
@@ -137,7 +156,7 @@ export default function CustomerApp() {
               {shown.map((e) => (
                 <EventCard key={e.type} event={e} open={sheet?.type === 'event' && sheet.event.type === e.type} onWhy={openWhy} />
               ))}
-              {notice && !sheetOpen && <div className="notice" data-testid="pref-notice">{notice}</div>}
+              {notice && !sheetOpen && <div className="notice" data-testid="pref-notice">Got it — we won't use these signals.</div>}
             </div>
           )}
 
@@ -172,11 +191,11 @@ export default function CustomerApp() {
             <div className="sheet-backdrop" onClick={closeSheet} />
             {sheet.type === 'event' ? (
               <WhyPanel event={sheet.event} disabled={disabledCats} onToggle={toggle} busy={busy} onClose={closeSheet}
-                categories={[...new Set((sheet.event.signals || []).map((s) => s.signalCategory))]} notice={notice} />
+                categories={sheet.cats} notice={noticeText} />
             ) : (
               <WhyPanel event={{ signals: (ctx.events || []).flatMap((e) => e.signals || []) }} disabled={disabledCats}
                 onToggle={toggle} busy={busy} onClose={closeSheet} categories={Object.keys(CAT_LABEL)}
-                title="Privacy & signals" notice={notice} />
+                title="Privacy & signals" notice={noticeText} />
             )}
           </>
         )}
