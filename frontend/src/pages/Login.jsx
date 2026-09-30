@@ -27,8 +27,8 @@ export default function Login() {
       <form className="login-card" onSubmit={submit} data-testid="login-form">
         <div><span className="logo big">KBC</span></div>
         <h1>Life Context Engine</h1>
-        <label>Username<input data-testid="username" value={username} onChange={(e) => setU(e.target.value)} autoFocus autoComplete="username" /></label>
-        <label>Password<input data-testid="password" type="password" value={password} onChange={(e) => setP(e.target.value)} autoComplete="current-password" /></label>
+        <label>Username<input data-testid="username" value={username} onChange={(e) => setU(e.target.value)} autoFocus autoComplete="username" autoCapitalize="off" autoCorrect="off" spellCheck={false} enterKeyHint="next" /></label>
+        <label>Password<input data-testid="password" type="password" value={password} onChange={(e) => setP(e.target.value)} autoComplete="current-password" autoCapitalize="off" enterKeyHint="go" /></label>
         {err && <div className="error" data-testid="login-error">{err}</div>}
         <button className="btn primary block" data-testid="login-submit" disabled={busy || !username || !password}>Log in</button>
       </form>

@@ -25,7 +25,7 @@ export async function api(path, { method = 'GET', body } = {}) {
     window.location.assign('/login');
     throw new ApiError(401, 'Session expired');
   }
-  if (res.status === 403) throw new ApiError(403, "You don't have access to this view");
+  if (res.status === 403) throw new ApiError(403, data?.error || "You don't have access to this view");
   if (!res.ok) throw new ApiError(res.status, data?.error || data?.message || `Request failed (${res.status})`);
   return data;
 }
