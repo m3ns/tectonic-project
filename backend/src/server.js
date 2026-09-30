@@ -8,6 +8,7 @@ const v = require("./validate");
 const auth = require("./auth");
 const me = require("./routes/me");
 const advisor = require("./routes/advisor");
+const customers = require("./routes/customers");
 
 process.on("unhandledRejection", (r) => console.error("unhandledRejection:", r && r.message));
 process.on("uncaughtException", (e) => {
@@ -48,6 +49,7 @@ api.get("/health", (req, res) => res.json({ status: "ok" }));
 api.use("/auth", auth.router);
 api.use(auth.requireAuth);
 api.use(me.router);
+api.use("/customers", customers.router);
 api.use("/advisor", auth.requireRole("advisor"), advisor.router);
 if (config.DEMO_MODE) {
   api.use("/demo", auth.requireRole("advisor"), require("./routes/demo").router);
@@ -65,6 +67,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Internal error", requestId: req.id });
 });
 
+require("./engine/pipeline").start(require("./data/store"));
 const server = app.listen(config.PORT, () => console.log(`Server running on http://localhost:${config.PORT}`));
 server.requestTimeout = 10_000;
 server.headersTimeout = 12_000;

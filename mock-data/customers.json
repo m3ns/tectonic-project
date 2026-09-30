@@ -121,5 +121,46 @@
       "home_insurance"
     ],
     "personalization_consent": true
+  },
+  {
+    "id": "C1011",
+    "first_name": "Femke",
+    "last_name": "Claes",
+    "age": 34,
+    "home_city": "Antwerp",
+    "preferred_language": "nl",
+    "customer_since": "2019-03-11",
+    "products": [
+      "current_account",
+      "savings_account"
+    ],
+    "personalization_consent": true
+  },
+  {
+    "id": "C1012",
+    "first_name": "Dries",
+    "last_name": "Vermeulen",
+    "age": 27,
+    "home_city": "Kortrijk",
+    "preferred_language": "nl",
+    "customer_since": "2021-06-02",
+    "products": [
+      "current_account"
+    ],
+    "personalization_consent": true
+  },
+  {
+    "id": "C1013",
+    "first_name": "Hanne",
+    "last_name": "Willems",
+    "age": 29,
+    "home_city": "Leuven",
+    "preferred_language": "nl",
+    "customer_since": "2020-01-20",
+    "products": [
+      "current_account",
+      "credit_card"
+    ],
+    "personalization_consent": true
   }
 ]

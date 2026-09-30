@@ -3,6 +3,8 @@ const store = require("../data/store");
 const { contextFor } = require("./me");
 const audit = require("../audit");
 const v = require("../validate");
+const rateLimit = require("express-rate-limit");
+const pipeline = require("../engine/pipeline");
 
 const router = express.Router();
 
@@ -34,7 +36,55 @@ router.get("/stats", (req, res) => {
     if (top.level !== "low") { withEvents++; byEvent[top.type]++; }
     maxConfidence = Math.max(maxConfidence, top.confidence);
   }
-  res.json({ totalCustomers: store.customers.length, customersWithEvents: withEvents, byAction, byEvent, maxConfidence });
+  const la = pipeline.getLatest();
+  res.json({
+    totalCustomers: store.customers.length, customersWithEvents: withEvents, byAction, byEvent, maxConfidence,
+    lastAnalysis: la ? { runId: la.runId, durationMs: la.durationMs, transactionsAnalysed: la.transactionsAnalysed, at: la.startedAt } : null,
+  });
+});
+
+// Overview of all consenting customers (silent ones show as "no_context"); no transactions.
+const LEVEL_RANK = { high: 3, medium: 2, low: 1, no_context: 0 };
+router.get("/overview", (req, res) => {
+  const customers = [];
+  let consentExcluded = 0;
+  for (const c of store.customers) {
+    const ctx = contextFor(c.id);
+    if (!ctx.consent) { consentExcluded++; continue; }
+    const top = ctx.events[0];
+    const row = { id: c.id, first_name: c.first_name, last_name: c.last_name || null, home_city: c.home_city, status: top ? top.level : "no_context" };
+    if (top) row.topEvent = { type: top.type, label: top.label, confidence: top.confidence, level: top.level, action: top.action, actionLabel: top.actionLabel };
+    customers.push(row);
+  }
+  customers.sort((a, b) => LEVEL_RANK[b.status] - LEVEL_RANK[a.status] || (b.topEvent ? b.topEvent.confidence : 0) - (a.topEvent ? a.topEvent.confidence : 0) || (a.id < b.id ? -1 : 1));
+  res.json({ total: customers.length + consentExcluded, consentExcluded, customers });
+});
+
+// --- analysis pipeline ---
+router.get("/analysis", (req, res) => res.json({ ...pipeline.getLatest(), history: pipeline.getHistory() }));
+
+router.post("/analysis/run", rateLimit({ windowMs: 1000, limit: 1, standardHeaders: "draft-7", legacyHeaders: false, message: { error: "Too many requests" } }), v.body(), (req, res) => {
+  pipeline.runAnalysis();
+  res.json(pipeline.getLatest());
+});
+
+const intParam = (raw, def, min, max) => {
+  if (raw === undefined) return def;
+  if (!/^\d{1,7}$/.test(raw)) return null;
+  const n = parseInt(raw, 10);
+  return n >= min && n <= max ? n : null;
+};
+
+router.get("/events", (req, res) => {
+  const limit = intParam(req.query.limit, 50, 1, 200);
+  if (limit === null) return res.status(400).json({ error: "limit must be an integer between 1 and 200" });
+  res.json(pipeline.getFeed(limit));
+});
+
+router.get("/benchmark", async (req, res) => {
+  const n = intParam(req.query.n, 10000, 1000, 200000);
+  if (n === null) return res.status(400).json({ error: "n must be an integer between 1000 and 200000" });
+  res.json(await pipeline.benchmark(n));
 });
 
 // Unknown customers and customers without consent are indistinguishable (404).
@@ -68,4 +118,4 @@ router.post("/customers/:id/call", validId, v.body({ note: { check: (x) => x ===
 
 router.get("/calls", (req, res) => res.json(store.calls));
 
-module.exports = { router };
+module.exports = { router, validId };

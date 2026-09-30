@@ -72,6 +72,12 @@ let hidden = new Set(); // hidden transaction ids
 let replayQueue = []; // ordered ids hidden at reset
 let timer = null;
 
+const listeners = [];
+const onChange = (fn) => { listeners.push(fn); };
+const notify = () => { for (const fn of listeners) { try { fn(); } catch (e) { console.error("store listener:", e && e.message); } } };
+
+const allVisible = () => allTx.filter((t) => !hidden.has(t.id));
+
 function visibleTransactions(customerId) {
   return (txByCustomer.get(customerId) || []).filter((t) => !hidden.has(t.id));
 }
@@ -90,16 +96,18 @@ function stopReplay() {
 function replayReset() {
   stopReplay();
   replayQueue = (txByCustomer.get(HERO) || [])
-    .filter((t) => t.date >= REPLAY_FROM)
+    .filter((t) => t.date >= REPLAY_FROM && !t.id.startsWith("N")) // background noise stays visible
     .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : a.id < b.id ? -1 : 1))
     .map((t) => t.id);
   hidden = new Set(replayQueue);
+  notify();
   return replayState();
 }
 function replayStep() {
   const next = replayQueue.find((id) => hidden.has(id));
   if (next) hidden.delete(next);
   if (!replayQueue.some((id) => hidden.has(id))) stopReplay();
+  notify();
   return replayState();
 }
 function replayStart(intervalMs) {
@@ -144,7 +152,8 @@ module.exports = {
   getCustomer: (id) => byId.get(id),
   visibleTransactions,
   getDisabled: (id) => preferences.get(id) || [],
-  setDisabled: (id, arr) => preferences.set(id, arr),
+  setDisabled: (id, arr) => { preferences.set(id, arr); notify(); },
+  allVisible, onChange,
   addAccess, accessFor,
   replayState, replayReset, replayStep, replayStart, calls, addCall,
 };

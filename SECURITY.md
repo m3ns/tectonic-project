@@ -28,6 +28,10 @@
 
 Health, pregnancy and dating-related spending are never used as signals (see `backend/src/engine/rules.js`). Customers can disable any signal category at any time, and can turn personalisation off (consent).
 
+## Pipeline data minimisation
+
+The analysis pipeline (`backend/src/engine/pipeline.js`) skips customers without consent, strips sensitive categories (pharmacy, health, dating, fertility, gambling, ...) at the filter stage, before any feature extraction or scoring, and only counts them (`sensitiveExcluded`); excluded transactions are never stored in the event store or returned by any endpoint. The event store keeps only per-event state and level transitions (no transaction data). Customers can only read their own context (`GET /api/customers/:id/context` returns 403 otherwise).
+
 ## Known limitations
 
 - Users, password, lockouts, revocation list, access log and call log are in memory and reset on restart; multiple instances would not share them.
