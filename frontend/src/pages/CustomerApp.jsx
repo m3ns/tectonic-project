@@ -7,11 +7,13 @@ export default function CustomerApp() {
   const [ctx, setCtx] = useState(null);
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
+  const [access, setAccess] = useState([]);
   const [notice, setNotice] = useState('');
   const user = getSession().user;
 
   const load = useCallback(async () => {
     try { setCtx(await api('/me/context')); setErr(''); } catch (e) { setErr(e.message); }
+    try { setAccess(await api('/me/access-log')); } catch { /* non-critical */ }
   }, []);
   useEffect(() => {
     load();
@@ -56,6 +58,17 @@ export default function CustomerApp() {
             </div>
           )}
           <p className="privacy" data-testid="privacy-note">We never use health, pregnancy or dating-related spending.</p>
+          <div className="recent" data-testid="access-log">
+            <h3>Who looked at my context</h3>
+            {access.length === 0 && <small className="muted">No one yet</small>}
+            <ul>
+              {access.slice(0, 5).map((a, i) => (
+                <li key={i}>
+                  <small>{a.advisor} — {a.action === 'call' ? 'called you' : 'viewed your context'} · {new Date(a.at).toLocaleString()}</small>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
         <Footer />
       </div>

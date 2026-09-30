@@ -1,11 +1,14 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { clearSession, getSession } from '../api.js';
+import { api, clearSession, getSession } from '../api.js';
 
 export default function Header({ title }) {
   const nav = useNavigate();
   const s = getSession();
-  const logout = () => { clearSession(); nav('/login'); };
+  const logout = async () => {
+    try { await api('/auth/logout', { method: 'POST' }); } catch { /* best effort */ }
+    clearSession(); nav('/login');
+  };
   return (
     <header className="hdr" data-testid="header">
       <div className="brand"><span className="logo">KBC</span><span>{title}</span></div>
