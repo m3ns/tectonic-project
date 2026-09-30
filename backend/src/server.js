@@ -2,6 +2,7 @@ const config = require("./config");
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 const auth = require("./auth");
 const me = require("./routes/me");
 const advisor = require("./routes/advisor");
@@ -13,6 +14,7 @@ app.use(cors({ origin: config.FRONTEND_ORIGIN, credentials: false }));
 app.use(express.json({ limit: "10kb" }));
 
 const api = express.Router();
+api.use(rateLimit({ windowMs: 60_000, limit: 300, standardHeaders: "draft-7", legacyHeaders: false }));
 api.get("/health", (req, res) => res.json({ status: "ok" }));
 api.use("/auth", auth.router);
 api.use(auth.requireAuth);

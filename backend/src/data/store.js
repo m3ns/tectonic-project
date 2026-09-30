@@ -117,6 +117,7 @@ let callSeq = 0;
 function addCall(customerId, advisor, note) {
   const c = { id: `CALL${String(++callSeq).padStart(4, "0")}`, customerId, advisor, at: new Date().toISOString(), note: note || "" };
   calls.push(c);
+  if (calls.length > 500) calls.splice(0, calls.length - 500);
   return c;
 }
 
