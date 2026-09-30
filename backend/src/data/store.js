@@ -121,11 +121,30 @@ function addCall(customerId, advisor, note) {
   return c;
 }
 
+// --- access transparency log (in-memory, last 1000) ---
+const accessLog = [];
+function addAccess(advisor, customerId, action) {
+  const now = Date.now();
+  // collapse repeated context reads by the same advisor within 30s (UI polling)
+  if (action === "view_context") {
+    for (let i = accessLog.length - 1; i >= 0 && now - Date.parse(accessLog[i].at) < 30_000; i--) {
+      const e = accessLog[i];
+      if (e.advisor === advisor && e.customerId === customerId && e.action === action) return;
+    }
+  }
+  accessLog.push({ at: new Date(now).toISOString(), advisor, customerId, action });
+  if (accessLog.length > 1000) accessLog.splice(0, accessLog.length - 1000);
+}
+const accessFor = (customerId) =>
+  accessLog.filter((e) => e.customerId === customerId).slice(-50).reverse()
+    .map((e) => ({ advisor: e.advisor, action: e.action, at: e.at }));
+
 module.exports = {
   customers: allCustomers,
   getCustomer: (id) => byId.get(id),
   visibleTransactions,
   getDisabled: (id) => preferences.get(id) || [],
   setDisabled: (id, arr) => preferences.set(id, arr),
+  addAccess, accessFor,
   replayState, replayReset, replayStep, replayStart, calls, addCall,
 };

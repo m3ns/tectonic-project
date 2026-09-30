@@ -1,6 +1,7 @@
 const express = require("express");
 const { requireRole } = require("../auth");
 const store = require("../data/store");
+const v = require("../validate");
 const { computeContext } = require("../engine/score");
 const { SIGNAL_CATEGORIES } = require("../engine/rules");
 
@@ -18,8 +19,11 @@ router.get("/me/context", requireRole("customer"), (req, res) => {
   res.json(contextFor(req.user.customerId));
 });
 
-router.put("/me/preferences", requireRole("customer"), (req, res) => {
-  const d = req.body && req.body.disabledCategories;
+// Who looked at my context: only ever the token owner's own entries.
+router.get("/me/access-log", requireRole("customer"), (req, res) => res.json(store.accessFor(req.user.customerId)));
+
+router.put("/me/preferences", requireRole("customer"), v.body({ disabledCategories: { required: true, check: Array.isArray } }), (req, res) => {
+  const d = req.body.disabledCategories;
   if (!Array.isArray(d) || d.length > 20 || !d.every((x) => typeof x === "string" && SIGNAL_CATEGORIES.includes(x))) {
     return res.status(400).json({ error: `disabledCategories must be an array of: ${SIGNAL_CATEGORIES.join(", ")}` });
   }

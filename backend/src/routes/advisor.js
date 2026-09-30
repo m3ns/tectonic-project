@@ -1,6 +1,8 @@
 const express = require("express");
 const store = require("../data/store");
 const { contextFor } = require("./me");
+const audit = require("../audit");
+const v = require("../validate");
 
 const router = express.Router();
 
@@ -35,19 +37,32 @@ router.get("/stats", (req, res) => {
   res.json({ totalCustomers: store.customers.length, customersWithEvents: withEvents, byAction, byEvent, maxConfidence });
 });
 
+// Unknown customers and customers without consent are indistinguishable (404).
 function validId(req, res, next) {
-  if (!/^C\d{4}$/.test(req.params.id)) return res.status(400).json({ error: "Invalid customer id" });
+  if (!/^Cd{4}$/.test(req.params.id)) return res.status(400).json({ error: "Invalid customer id" });
   if (!store.getCustomer(req.params.id)) return res.status(404).json({ error: "Customer not found" });
+  const ctx = contextFor(req.params.id);
+  if (!ctx.consent) return res.status(404).json({ error: "Customer not found" });
+  res.locals.ctx = ctx;
   next();
 }
 
-router.get("/customers/:id/context", validId, (req, res) => res.json(contextFor(req.params.id)));
+router.get("/customers/:id/context", validId, (req, res) => {
+  store.addAccess(req.user.displayName, req.params.id, "view_context");
+  res.json(res.locals.ctx);
+});
 
-router.post("/customers/:id/call", validId, (req, res) => {
+router.post("/customers/:id/call", v.body({ note: { check: (x) => x === undefined || typeof x === "string" } }), validId, (req, res) => {
+  // Purpose binding: only customers with an advisor/guidance-level event may be contacted.
+  if (!res.locals.ctx.events.some((e) => e.action === "advisor" || e.action === "guidance")) {
+    audit.log("forbidden", req, { user: audit.hashUser(req.user.username), reason: "no_purpose" });
+    return res.status(403).json({ error: "No legitimate purpose for contact" });
+  }
   const note = req.body && req.body.note;
   if (note !== undefined && (typeof note !== "string" || note.length > 500)) {
     return res.status(400).json({ error: "note must be a string of at most 500 characters" });
   }
+  store.addAccess(req.user.displayName, req.params.id, "call");
   res.status(201).json(store.addCall(req.params.id, req.user.username, note));
 });
 
