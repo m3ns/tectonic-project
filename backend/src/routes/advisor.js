@@ -39,7 +39,7 @@ router.get("/stats", (req, res) => {
 
 // Unknown customers and customers without consent are indistinguishable (404).
 function validId(req, res, next) {
-  if (!/^Cd{4}$/.test(req.params.id)) return res.status(400).json({ error: "Invalid customer id" });
+  if (!/^C\d{4}$/.test(req.params.id)) return res.status(400).json({ error: "Invalid customer id" });
   if (!store.getCustomer(req.params.id)) return res.status(404).json({ error: "Customer not found" });
   const ctx = contextFor(req.params.id);
   if (!ctx.consent) return res.status(404).json({ error: "Customer not found" });
