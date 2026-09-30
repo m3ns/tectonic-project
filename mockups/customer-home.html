@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Customer App Mockup</title>
+<style>
+  :root {
+    --navy: #003665;
+    --blue: #0097db;
+    --blue-soft: #e8f4fb;
+    --ink: #1d2733;
+    --muted: #6b7785;
+    --line: #e3e8ee;
+    --bg: #f3f6f9;
+    --card: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 24px 16px;
+    background: #d9dee4;
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+  }
+  .phone {
+    position: relative;
+    width: 390px;
+    max-width: 100%;
+    height: 844px;
+    background: var(--bg);
+    border-radius: 36px;
+    box-shadow: 0 0 0 10px #1b1b1d, 0 20px 50px rgba(0,0,0,.35);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .scroll { flex: 1; overflow-y: auto; padding-bottom: 90px; }
+
+  /* Header */
+  .top { display: flex; align-items: center; gap: 10px; padding: 44px 14px 12px; }
+  .icon-btn {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: #e9eef3; border: 0; color: var(--navy); cursor: pointer; flex: none;
+  }
+  .icon-btn.plain { background: transparent; position: relative; }
+  .dot { position: absolute; top: 6px; right: 8px; width: 9px; height: 9px; border-radius: 50%; background: #e8452c; }
+  .search {
+    flex: 1; display: flex; align-items: center; gap: 8px;
+    height: 42px; padding: 0 12px; border-radius: 22px;
+    background: var(--card); border: 1px solid var(--line); color: var(--muted); font-size: 15px;
+  }
+  .search .kate { margin-left: auto; color: var(--navy); font-weight: 600; font-size: 15px; }
+
+  /* Account cards */
+  .accounts { display: flex; gap: 12px; overflow-x: auto; padding: 6px 14px 10px; scrollbar-width: none; }
+  .accounts::-webkit-scrollbar { display: none; }
+  .acc { flex: none; width: 140px; background: var(--card); border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .acc .art { height: 92px; display: grid; place-items: center; color: #fff; }
+  .acc .art.personal { background: linear-gradient(135deg, #1583c9, #6cc3ef); }
+  .acc .art.company { background: linear-gradient(135deg, #0c3c6a, #1d6aa6); }
+  .acc .art.card { background: linear-gradient(135deg, #0a2a4d, #174c80); }
+  .acc .body { padding: 8px 10px 12px; font-size: 13px; }
+  .acc .mask { margin-top: 6px; height: 10px; width: 80%; border-radius: 5px; background: #dfe5eb; }
+  .acc.active { border-bottom: 3px solid var(--navy); }
+  .mc { display: flex; }
+  .mc span { width: 30px; height: 30px; border-radius: 50%; }
+  .mc span:first-child { background: #eb001b; }
+  .mc span:last-child { background: #f79e1b; margin-left: -10px; opacity: .9; }
+
+  .show-payments { display: flex; align-items: center; gap: 8px; padding: 6px 22px 18px; color: var(--navy); font-size: 13px; }
+
+  /* For you */
+  .section-head { display: flex; justify-content: space-between; align-items: baseline; padding: 0 14px 10px; }
+  .section-head h2 { margin: 0; font-size: 17px; font-weight: 500; }
+  .section-head a { color: var(--blue); font-size: 14px; font-weight: 600; text-decoration: none; }
+
+  .msg {
+    position: relative; display: flex; gap: 14px;
+    margin: 0 14px 12px; padding: 14px 16px;
+    background: var(--card); border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.08);
+  }
+  .msg.highlight { background: var(--blue-soft); border-left: 4px solid var(--blue); }
+  .msg .ico { flex: none; width: 32px; color: var(--navy); padding-top: 2px; }
+  .msg .txt { flex: 1; font-size: 14.5px; line-height: 1.4; }
+  .msg .close ~ .txt { padding-right: 16px; }
+  .msg .txt strong { display: block; font-size: 16px; font-weight: 500; margin-bottom: 4px; }
+  .msg .fine { margin-top: 8px; font-size: 11.5px; color: var(--muted); }
+  .msg .row { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; gap: 8px; }
+  .why { background: none; border: 0; padding: 0; color: var(--ink); font-size: 14px; cursor: pointer; text-align: left; }
+  .why:hover { text-decoration: underline; }
+  .pill { border: 0; border-radius: 14px; padding: 6px 12px; background: var(--blue); color: #fff; font-size: 12px; cursor: pointer; white-space: nowrap; }
+  .close { position: absolute; top: 8px; right: 10px; width: 18px; height: 18px; border-radius: 50%; border: 0; background: #e6ebf0; color: var(--muted); font-size: 11px; line-height: 18px; cursor: pointer; padding: 0; }
+
+  .wallet-head { padding: 12px 14px 8px; display: flex; justify-content: space-between; }
+  .wallet-head h2 { margin: 0; font-size: 17px; font-weight: 500; }
+  .wallet-head a { color: var(--blue); font-weight: 600; font-size: 14px; text-decoration: none; }
+  .wallet { margin: 0 14px; height: 70px; border-radius: 10px 10px 0 0; background: linear-gradient(135deg, #0a2a4d, #1e6aa8); }
+
+  /* FAB + nav */
+  .fab {
+    position: absolute; right: 18px; bottom: 92px; width: 56px; height: 56px; border-radius: 50%;
+    border: 0; background: var(--blue); color: #fff; display: grid; place-items: center;
+    box-shadow: 0 6px 16px rgba(0,151,219,.45); cursor: pointer;
+  }
+  .nav {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 76px;
+    display: flex; justify-content: space-around; align-items: center;
+    background: var(--card); border-top: 1px solid var(--line); padding-bottom: 8px;
+  }
+  .nav div { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11.5px; color: var(--muted); }
+  .nav div.on { color: var(--navy); font-weight: 600; }
+
+  /* Why panel (bottom sheet) */
+  .sheet-bg { position: absolute; inset: 0; background: rgba(0,20,40,.45); opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .sheet {
+    position: absolute; left: 0; right: 0; bottom: 0; max-height: 82%;
+    background: var(--card); border-radius: 18px 18px 0 0; padding: 18px 18px 28px;
+    transform: translateY(100%); transition: transform .25s ease; overflow-y: auto;
+  }
+  .open .sheet-bg { opacity: 1; pointer-events: auto; }
+  .open .sheet { transform: translateY(0); }
+  .sheet .grab { width: 40px; height: 4px; border-radius: 2px; background: #cfd6dd; margin: 0 auto 14px; }
+  .sheet h3 { margin: 0 0 4px; font-size: 18px; font-weight: 600; }
+  .sheet .sub { margin: 0 0 14px; font-size: 13.5px; color: var(--muted); line-height: 1.4; }
+  .sheet h4 { margin: 16px 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; }
+  .signals { list-style: none; margin: 0; padding: 0; }
+  .signals li { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .signals li.off { color: #aab3bd; text-decoration: line-through; }
+  .check { flex: none; width: 20px; height: 20px; border-radius: 50%; background: #e3f3ea; color: #1f8a4c; display: grid; place-items: center; font-size: 12px; }
+  .signals li.off .check { background: #eef1f4; color: #aab3bd; }
+  .toggle { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .toggle small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .switch { position: relative; width: 44px; height: 26px; flex: none; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch span { position: absolute; inset: 0; border-radius: 13px; background: #c8d0d8; cursor: pointer; transition: background .2s; }
+  .switch span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform .2s; }
+  .switch input:checked + span { background: var(--blue); }
+  .switch input:checked + span::after { transform: translateX(18px); }
+  .never { margin-top: 14px; padding: 10px 12px; border-radius: 8px; background: #f3f6f9; font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+  .done { margin-top: 16px; width: 100%; padding: 12px; border: 0; border-radius: 22px; background: var(--navy); color: #fff; font-size: 15px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="phone" id="phone">
+  <div class="scroll">
+    <header class="top">
+      <button class="icon-btn" aria-label="Settings">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      </button>
+      <div class="search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        How can I help you?
+        <span class="kate">+ Kate</span>
+      </div>
+      <button class="icon-btn plain" aria-label="Notifications">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.8"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>
+        <span class="dot"></span>
+      </button>
+    </header>
+
+    <div class="accounts">
+      <div class="acc active">
+        <div class="art personal"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.4"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M16 12h5v4h-5a2 2 0 0 1 0-4zM5 6l10-3 1 3"/></svg></div>
+        <div class="body">Personal Account<div class="mask"></div></div>
+      </div>
+      <div class="acc">
+        <div class="art company"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.4"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M16 12h5v4h-5a2 2 0 0 1 0-4zM5 6l10-3 1 3"/></svg></div>
+        <div class="body">Company Account<div class="mask"></div></div>
+      </div>
+      <div class="acc">
+        <div class="art card"><div class="mc"><span></span><span></span></div></div>
+        <div class="body">ALEX PEETERS<div class="mask"></div></div>
+      </div>
+    </div>
+
+    <div class="show-payments">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+      Show payments
+    </div>
+
+    <div class="section-head">
+      <h2>For you</h2>
+      <a href="#">All communications</a>
+    </div>
+
+    <!-- Life-context card: the one the engine drives -->
+    <article class="msg highlight" id="contextCard">
+      <div class="ico">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M7 9h10M7 12h7M7 15h10"/></svg>
+      </div>
+      <div class="txt">
+        <strong>Good morning, Alex</strong>
+        <span id="cardText">We noticed you may be preparing for a move.</span>
+        <div class="row">
+          <button class="why" id="whyBtn">Why am I seeing this?</button>
+          <button class="pill">Find out more</button>
+        </div>
+      </div>
+    </article>
+
+    <article class="msg">
+      <button class="close" aria-label="Dismiss">✕</button>
+      <div class="ico">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 17l6-6 4 4 7-7"/><path d="M14 8h6v6"/></svg>
+      </div>
+      <div class="txt">
+        Want to make your own investments online? Do it with our investment platform. Learn more.
+        <div class="row"><span></span><button class="pill">Find out more</button></div>
+      </div>
+    </article>
+
+    <article class="msg" id="depositCard">
+      <button class="close" aria-label="Dismiss">✕</button>
+      <div class="ico">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/></svg>
+      </div>
+      <div class="txt">
+        Planning to rent somewhere? Check out the Security Deposit Savings Account, a regulated ('Category A') savings account.
+        <div class="fine">Before opening an account with us, be sure to read the key information for savers.</div>
+      </div>
+    </article>
+
+    <div class="wallet-head"><h2>Kate Wallet</h2><a href="#">Open Kate Wallet</a></div>
+    <div class="wallet"></div>
+  </div>
+
+  <button class="fab" aria-label="Transfer">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M4 8h14l-4-4M20 16H6l4 4"/></svg>
+  </button>
+
+  <nav class="nav">
+    <div class="on"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="6" width="18" height="14" rx="2"/></svg>Start</div>
+    <div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/></svg>My KBC</div>
+    <div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="13" rx="8" ry="6"/><path d="M12 7V4"/></svg>Investments</div>
+    <div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V4h6v3"/></svg>Business</div>
+    <div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg>Offer</div>
+  </nav>
+
+  <!-- "Why am I seeing this?" bottom sheet -->
+  <div class="sheet-bg" id="sheetBg"></div>
+  <section class="sheet" aria-label="Why am I seeing this">
+    <div class="grab"></div>
+    <h3>Why am I seeing this?</h3>
+    <p class="sub">We combine several everyday signals. No single payment triggers a message. You decide which signal types we may use.</p>
+
+    <h4>Signals we noticed</h4>
+    <ul class="signals" id="signalList"></ul>
+
+    <h4>Signal types you allow</h4>
+    <div id="toggleList"></div>
+
+    <div class="never">We never use sensitive signals such as health, pregnancy or dating to personalise your app.</div>
+    <button class="done" id="doneBtn">Done</button>
+  </section>
+</div>
+
+<script>
+  // Static demo data. Replace with GET /customers/me/context once the API is ready.
+  const signals = [
+    { text: "Repeated purchases in a new area (Ghent)", category: "location" },
+    { text: "Frequent payments in Ghent over 3 weeks", category: "location" },
+    { text: "Payment to a real-estate agency", category: "merchant" },
+    { text: "Furniture purchases", category: "merchant" },
+    { text: "Unusually high home-improvement spending", category: "merchant" }
+  ];
+  const categories = {
+    location: { label: "Location", hint: "Where you shop and pay", on: true },
+    merchant: { label: "Type of shop", hint: "Furniture, DIY, estate agents", on: true }
+  };
+
+  const signalList = document.getElementById("signalList");
+  const toggleList = document.getElementById("toggleList");
+  const cardText = document.getElementById("cardText");
+  const depositCard = document.getElementById("depositCard");
+
+  function render() {
+    signalList.innerHTML = "";
+    signals.forEach(s => {
+      const li = document.createElement("li");
+      const off = !categories[s.category].on;
+      if (off) li.className = "off";
+      li.innerHTML = '<span class="check">' + (off ? "–" : "✓") + "</span>";
+      li.appendChild(document.createTextNode(s.text));
+      signalList.appendChild(li);
+    });
+
+    const active = signals.filter(s => categories[s.category].on).length;
+    if (active >= 4) {
+      cardText.textContent = "We noticed you may be preparing for a move.";
+      depositCard.style.display = "";
+    } else {
+      cardText.textContent = "Here is what's new in your app today.";
+      depositCard.style.display = "none";
+    }
+  }
+
+  Object.entries(categories).forEach(([key, c]) => {
+    const row = document.createElement("label");
+    row.className = "toggle";
+    row.innerHTML = "<span>" + c.label + "<small>" + c.hint + "</small></span>" +
+      '<span class="switch"><input type="checkbox" checked><span></span></span>';
+    row.querySelector("input").addEventListener("change", e => {
+      c.on = e.target.checked;
+      render();
+    });
+    toggleList.appendChild(row);
+  });
+
+  const phone = document.getElementById("phone");
+  document.getElementById("whyBtn").addEventListener("click", () => phone.classList.add("open"));
+  document.getElementById("doneBtn").addEventListener("click", () => phone.classList.remove("open"));
+  document.getElementById("sheetBg").addEventListener("click", () => phone.classList.remove("open"));
+  document.querySelectorAll(".close").forEach(b => b.addEventListener("click", () => b.closest(".msg").remove()));
+
+  render();
+  if (location.hash === "#why") phone.classList.add("open");
+</script>
+</body>
+</html>
